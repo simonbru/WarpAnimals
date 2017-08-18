@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -13,6 +13,7 @@ namespace WarpAnimals {
 
         public override void Entry(IModHelper helper) {
             this.config = helper.ReadConfig<ModConfig>();
+
             if (config.WarpKey != null) {
                 ControlEvents.KeyPressed += this.ControlEvents_KeyPress;
             }
@@ -24,6 +25,12 @@ namespace WarpAnimals {
                     this.GamepadButtonPress(evt.ButtonPressed);
                 };
             }
+
+            helper.ConsoleCommands.Add(
+                "warp_animals",
+                "Warp wandering animals into their respective home.",
+                this.ConsoleCommand_WarpAnimals
+            );
         }
 
         private void GamepadButtonPress(Buttons button) {
@@ -41,6 +48,10 @@ namespace WarpAnimals {
                     WarpAllAnimalsHome();
                 }
             }
+        }
+
+        private void ConsoleCommand_WarpAnimals(string command, string[] args) {
+            this.WarpAllAnimalsHome();
         }
 
         private void WarpAllAnimalsHome() {
