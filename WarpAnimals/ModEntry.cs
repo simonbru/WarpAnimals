@@ -7,38 +7,46 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 
-namespace YourProjectName {
-    /// <summary>The mod entry point.</summary>
+namespace WarpAnimals {
     public class ModEntry : Mod {
-        /*********
-        ** Public methods
-        *********/
-        /// <summary>The mod entry point, called after the mod is first loaded.</summary>
-        /// <param name="helper">Provides simplified APIs for writing mods.</param>
+        private ModConfig config;
+
         public override void Entry(IModHelper helper) {
-            ControlEvents.KeyPressed += this.ControlEvents_KeyPress;
-        }
-
-        /*********
-        ** Private methods
-        *********/
-        /// <summary>The method invoked when the player presses a keyboard button.</summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event data.</param>
-        private void ControlEvents_KeyPress(object sender, EventArgsKeyPressed e) {
-            
-            if (Context.IsWorldReady) { // save is loaded
-                if (e.KeyPressed == Keys.K) {
-                    warpAllAnimalsHome();
-                }
-
+            this.config = helper.ReadConfig<ModConfig>();
+            if (config.WarpKey != null) {
+                ControlEvents.KeyPressed += this.ControlEvents_KeyPress;
+            }
+            if (config.WarpButton != null) {
+                ControlEvents.ControllerButtonPressed += (sender, evt) => {
+                    this.GamepadButtonPress(evt.ButtonPressed);
+                };
+                ControlEvents.ControllerTriggerPressed += (sender, evt) => {
+                    this.GamepadButtonPress(evt.ButtonPressed);
+                };
             }
         }
 
-        private void warpAllAnimalsHome() {
+        private void GamepadButtonPress(Buttons button) {
+            this.Monitor.Log($"Button press: {button}");
+            if (Context.IsWorldReady) { // save is loaded
+                if (button == config.WarpButton) {
+                    WarpAllAnimalsHome();
+                }
+            }
+        }
+
+        private void ControlEvents_KeyPress(object sender, EventArgsKeyPressed e) {
+            if (Context.IsWorldReady) { // save is loaded
+                if (e.KeyPressed == config.WarpKey) {
+                    WarpAllAnimalsHome();
+                }
+            }
+        }
+
+        private void WarpAllAnimalsHome() {
             Farm farm = Game1.getFarm();
             var animalsOutside = new List<FarmAnimal>(farm.animals.Values);
-            this.Monitor.Log($"Warp {animalsOutside.Count} animals home.");
+            this.Monitor.Log($"Warp {animalsOutside.Count} animals home.", LogLevel.Info);
             animalsOutside.ForEach(animal => {
                 animal.warpHome(farm, animal);
             });
